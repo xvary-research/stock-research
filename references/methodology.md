@@ -16,7 +16,7 @@ XVARY is built around five principles:
 4. **Adversarial challenge is mandatory**: every thesis gets attacked before publication.
 5. **Kill-file discipline**: each call includes explicit thesis-invalidating conditions.
 
-## 21-Stage DAG
+## 22-Stage Operational DAG (21-Stage Research Spine + Finalize)
 
 ```mermaid
 flowchart TD
@@ -46,7 +46,7 @@ flowchart TD
     s21 --> s22[finalize]
 ```
 
-> The operational DAG includes 22 nodes in code (`finalize` included). Publicly we refer to the core research spine as the 21-stage methodology and treat finalization as release control.
+> The operational DAG has 22 nodes in code (`finalize` included). Publicly we refer to the core research spine as the 21-stage methodology and treat finalization as release control.
 
 ### Stage Intent (One-Line)
 

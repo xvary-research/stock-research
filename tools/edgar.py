@@ -18,6 +18,7 @@ import argparse
 import json
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
+import time
 from typing import Any, Optional
 
 import requests
@@ -26,6 +27,9 @@ _SEC_CIK_LOOKUP = "https://www.sec.gov/files/company_tickers.json"
 _SEC_COMPANY_FACTS = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json"
 _SEC_SUBMISSIONS = "https://data.sec.gov/submissions/CIK{cik}.json"
 _TIMEOUT = 25
+_MAX_RETRIES = 3
+_INITIAL_BACKOFF_SECONDS = 1.0
+_RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 _ACCEPTED_FORMS = {"10-K", "10-Q", "20-F", "6-K"}
 _ANNUAL_FORMS = {"10-K", "20-F"}
 _QUARTERLY_FORMS = {"10-Q", "6-K"}
@@ -87,9 +91,10 @@ _FIELD_CONCEPTS: dict[str, dict[str, tuple[str, ...]]] = {
         ),
         "shares_outstanding": (
             "CommonStockSharesOutstanding",
+            "EntityCommonStockSharesOutstanding",
             "NumberOfSharesIssued",
-            "WeightedAverageNumberOfDilutedSharesOutstanding",
-            "WeightedAverageShares",
+            "ShareIssued",
+            "OrdinarySharesNumber",
         ),
     },
     "cash_flow": {
@@ -135,6 +140,19 @@ def _concept_map() -> dict[str, tuple[str, str]]:
 _CONCEPT_MAP = _concept_map()
 
 
+def _field_concept_priority() -> dict[tuple[str, str], dict[str, int]]:
+    priorities: dict[tuple[str, str], dict[str, int]] = {}
+    for statement, fields in _FIELD_CONCEPTS.items():
+        for field, concepts in fields.items():
+            priorities[(statement, field)] = {
+                concept: idx for idx, concept in enumerate(concepts)
+            }
+    return priorities
+
+
+_FIELD_CONCEPT_PRIORITY = _field_concept_priority()
+
+
 def _session() -> requests.Session:
     s = requests.Session()
     s.headers.update(_HEADERS)
@@ -142,9 +160,25 @@ def _session() -> requests.Session:
 
 
 def _request_json(url: str, session: requests.Session) -> dict[str, Any]:
-    response = session.get(url, timeout=_TIMEOUT)
-    response.raise_for_status()
-    return response.json()
+    last_error: Optional[Exception] = None
+    for attempt in range(1, _MAX_RETRIES + 1):
+        try:
+            response = session.get(url, timeout=_TIMEOUT)
+            if response.status_code in _RETRYABLE_STATUS_CODES:
+                raise requests.HTTPError(
+                    f"Retryable status {response.status_code}",
+                    response=response,
+                )
+            response.raise_for_status()
+            return response.json()
+        except (requests.RequestException, ValueError) as exc:
+            last_error = exc
+            if attempt >= _MAX_RETRIES:
+                break
+            backoff = _INITIAL_BACKOFF_SECONDS * (2 ** (attempt - 1))
+            time.sleep(backoff)
+    assert last_error is not None
+    raise last_error
 
 
 def _variants(ticker: str) -> list[str]:
@@ -316,7 +350,12 @@ def _extract_line_items(company_facts: dict[str, Any]) -> dict[tuple[str, str], 
     return items
 
 
-def _best_entry(records: list[dict[str, Any]], quarterly: bool) -> Optional[dict[str, Any]]:
+def _best_entry(
+    records: list[dict[str, Any]],
+    quarterly: bool,
+    statement: str,
+    field: str,
+) -> Optional[dict[str, Any]]:
     if not records:
         return None
     scoped: list[dict[str, Any]] = []
@@ -329,6 +368,16 @@ def _best_entry(records: list[dict[str, Any]], quarterly: bool) -> Optional[dict
 
     if not scoped:
         return None
+
+    concept_priority = _FIELD_CONCEPT_PRIORITY.get((statement, field), {})
+    if concept_priority:
+        default_rank = len(concept_priority) + 100
+        best_rank = min(concept_priority.get(r.get("concept", ""), default_rank) for r in scoped)
+        scoped = [
+            r
+            for r in scoped
+            if concept_priority.get(r.get("concept", ""), default_rank) == best_rank
+        ]
 
     unit_counts = Counter(r.get("unit") for r in scoped)
     preferred_unit = unit_counts.most_common(1)[0][0]
@@ -350,7 +399,12 @@ def _build_snapshot(
     period_end: Optional[str] = None
 
     for (statement, field), records in line_items.items():
-        best = _best_entry(records, quarterly=quarterly)
+        best = _best_entry(
+            records,
+            quarterly=quarterly,
+            statement=statement,
+            field=field,
+        )
         if not best:
             continue
         snapshot[statement][field] = best["value"]

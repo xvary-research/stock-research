@@ -19,11 +19,15 @@ import io
 import json
 import re
 from datetime import datetime, timezone
+import time
 from typing import Any, Optional
 
 import requests
 
 _TIMEOUT = 20
+_MAX_RETRIES = 3
+_INITIAL_BACKOFF_SECONDS = 1.0
+_RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 _HEADERS = {
     "User-Agent": "stock-research/1.0 (research@xvary.com)",
     "Accept": "application/json,text/html;q=0.9,*/*;q=0.8",
@@ -73,11 +77,53 @@ def _parse_percent(raw: str) -> Optional[float]:
         return None
 
 
+def _http_get_json(url: str) -> dict[str, Any]:
+    last_error: Optional[Exception] = None
+    for attempt in range(1, _MAX_RETRIES + 1):
+        try:
+            response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
+            if response.status_code in _RETRYABLE_STATUS_CODES:
+                raise requests.HTTPError(
+                    f"Retryable status {response.status_code}",
+                    response=response,
+                )
+            response.raise_for_status()
+            return response.json()
+        except (requests.RequestException, ValueError) as exc:
+            last_error = exc
+            if attempt >= _MAX_RETRIES:
+                break
+            backoff = _INITIAL_BACKOFF_SECONDS * (2 ** (attempt - 1))
+            time.sleep(backoff)
+    assert last_error is not None
+    raise last_error
+
+
+def _http_get_text(url: str) -> str:
+    last_error: Optional[Exception] = None
+    for attempt in range(1, _MAX_RETRIES + 1):
+        try:
+            response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
+            if response.status_code in _RETRYABLE_STATUS_CODES:
+                raise requests.HTTPError(
+                    f"Retryable status {response.status_code}",
+                    response=response,
+                )
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as exc:
+            last_error = exc
+            if attempt >= _MAX_RETRIES:
+                break
+            backoff = _INITIAL_BACKOFF_SECONDS * (2 ** (attempt - 1))
+            time.sleep(backoff)
+    assert last_error is not None
+    raise last_error
+
+
 def _fetch_yahoo(ticker: str) -> Optional[dict[str, Any]]:
     url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={ticker}"
-    response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
-    response.raise_for_status()
-    payload = response.json()
+    payload = _http_get_json(url)
     rows = payload.get("quoteResponse", {}).get("result", [])
     if not rows:
         return None
@@ -115,9 +161,8 @@ def _extract_finviz_map(html: str) -> dict[str, str]:
 
 def _fetch_finviz(ticker: str) -> Optional[dict[str, Any]]:
     url = f"https://finviz.com/quote.ashx?t={ticker.upper()}"
-    response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
-    response.raise_for_status()
-    data = _extract_finviz_map(response.text)
+    html = _http_get_text(url)
+    data = _extract_finviz_map(html)
 
     price = _parse_compact(data.get("Price", ""))
     if price is None:
@@ -150,10 +195,9 @@ def _fetch_stooq(ticker: str) -> Optional[dict[str, Any]]:
         return None
     symbol = f"{ticker.lower()}.us"
     url = f"https://stooq.com/q/l/?s={symbol}&f=sd2t2ohlcv&h&e=csv"
-    response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
-    response.raise_for_status()
+    text = _http_get_text(url)
 
-    reader = csv.DictReader(io.StringIO(response.text))
+    reader = csv.DictReader(io.StringIO(text))
     row = next(reader, None)
     if not row:
         return None
@@ -211,24 +255,25 @@ def get_ratios(ticker: str) -> dict[str, Any]:
     """Return ratio-level market data (P/E, dividend yield, beta)."""
     normalized = ticker.strip().upper()
 
-    # Prefer Yahoo for ratios; if missing fields, try Finviz then Stooq.
-    candidates: list[dict[str, Any]] = []
+    # Prefer Yahoo for ratios; short-circuit once we get usable ratio data.
+    fallback: Optional[dict[str, Any]] = None
     for fetcher in (_fetch_yahoo, _fetch_finviz, _fetch_stooq):
         try:
             result = fetcher(normalized)
         except Exception:
             result = None
-        if result and result.get("price") is not None:
-            candidates.append(result)
-
-    if not candidates:
-        raise RuntimeError(f"No market data available for {normalized}")
-
-    chosen = candidates[0]
-    for candidate in candidates:
-        if any(candidate.get(k) is not None for k in ("pe", "dividend_yield_pct", "beta")):
-            chosen = candidate
+        if not result or result.get("price") is None:
+            continue
+        if fallback is None:
+            fallback = result
+        if any(result.get(k) is not None for k in ("pe", "dividend_yield_pct", "beta")):
+            chosen = result
             break
+    else:
+        chosen = fallback
+
+    if not chosen:
+        raise RuntimeError(f"No market data available for {normalized}")
 
     return {
         "ticker": normalized,
