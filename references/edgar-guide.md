@@ -29,6 +29,7 @@ This guide explains how the skill reads SEC data with `tools/edgar.py`.
 - Parse both `us-gaap` and `ifrs-full` concept namespaces.
 - Map IFRS terms into common output field names where possible.
 - Keep annual and quarterly snapshots separate.
+- Return `shares_outstanding` only from period-end share concepts; if unavailable, keep it null instead of using weighted-average EPS denominators.
 
 ## CLI Examples
 
