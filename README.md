@@ -138,6 +138,11 @@ PRs are welcome for:
 - Market-data fallback robustness
 - Documentation clarity and examples
 
+## Social Preview Asset
+
+- Prebuilt image: `assets/social-preview.png` (1280x640)
+- Apply in GitHub UI: `Settings -> General -> Social preview`
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
