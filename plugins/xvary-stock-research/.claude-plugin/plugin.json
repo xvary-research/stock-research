@@ -1,0 +1,5 @@
+{
+  "name": "xvary-stock-research",
+  "description": "Institutional-style stock snapshots in Claude Code: /analyze, /score, /compare from public EDGAR + market data.",
+  "version": "1.0.0"
+}

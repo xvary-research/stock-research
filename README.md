@@ -61,6 +61,8 @@ Or skip the install entirely -- open Claude Code in this repo and say:
 Read SKILL.md and run /analyze AAPL
 ```
 
+**Plugin marketplace (same folder):** open this directory as the marketplace root (it contains `.claude-plugin/marketplace.json`), then in Claude Code run `/plugin marketplace add .` and `/plugin install xvary-stock-research@xvary-research`. Validate with `claude plugin validate .` before you tag a release.
+
 ### Commands
 
 | Command | What it does |
@@ -118,6 +120,15 @@ Financial snapshot (public, 10-K 2026-01-25):
 ## Architecture
 
 **Skill layer (this repo):** public data in → methodology + scoring → structured output → link out to full deep dives on [xvary.com](https://xvary.com).
+
+### Claude Code plugin bundle (ships in this folder)
+
+| Path | Role |
+|------|------|
+| `.claude-plugin/marketplace.json` | Marketplace catalog **`xvary-research`** — users run `/plugin marketplace add` from this directory |
+| `plugins/xvary-stock-research/` | Plugin wrapper; `skills/xvary-stock-research/` symlinks to root `SKILL.md`, `references/`, `tools/`, `examples/` so there is a single source tree |
+
+**Monorepo checkout:** open a terminal in **`9. Marketing/xvary skill/`** (this folder), then run `/plugin marketplace add .` in Claude Code — same as a standalone `stock-research` clone where this folder is the repo root.
 
 ```mermaid
 flowchart LR
@@ -262,7 +273,7 @@ EDGAR patterns: [references/edgar-guide.md](./references/edgar-guide.md)
 - [ ] MCP server for on-demand full deep dives
 - [ ] Earnings-season auto-refresh triggers
 - [ ] Additional scoring models (earnings quality, capital allocation)
-- [ ] Cursor / Windsurf / Codex plugin distribution
+- [ ] Cursor / Windsurf / Codex skill mirrors (Claude Code marketplace ships from this folder)
 
 ## Contributing
 

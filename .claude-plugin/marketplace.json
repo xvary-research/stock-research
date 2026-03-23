@@ -1,0 +1,30 @@
+{
+  "name": "xvary-research",
+  "owner": {
+    "name": "XVARY Research"
+  },
+  "metadata": {
+    "description": "XVARY Claude Code plugins — public stock research skill (EDGAR + market data) aligned with xvary.com deep dives."
+  },
+  "plugins": [
+    {
+      "name": "xvary-stock-research",
+      "source": "./plugins/xvary-stock-research",
+      "description": "Thesis-driven equity workflow: /analyze, /score, /compare using public SEC EDGAR + market snapshots (free, local tools).",
+      "version": "1.0.0",
+      "license": "MIT",
+      "homepage": "https://xvary.com",
+      "repository": "https://github.com/xvary-research/stock-research",
+      "keywords": [
+        "xvary",
+        "stocks",
+        "edgar",
+        "sec",
+        "finance",
+        "research",
+        "claude-code"
+      ],
+      "tags": ["finance", "research", "skills"]
+    }
+  ]
+}
