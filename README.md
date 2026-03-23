@@ -39,8 +39,8 @@ Captured from **[xvary.com/stock/nvda/deep-dive/](https://xvary.com/stock/nvda/d
 ### Clone and verify
 
 ```bash
-git clone git@github.com:xvary-research/stock-research.git
-cd stock-research
+git clone git@github.com:xvary-research/claude-code-stock-analysis-skill.git
+cd claude-code-stock-analysis-skill
 python3 tools/edgar.py AAPL    # pulls SEC XBRL data
 python3 tools/market.py AAPL   # pulls price + ratios
 ```
@@ -62,6 +62,8 @@ Read SKILL.md and run /analyze AAPL
 ```
 
 **Plugin marketplace (same folder):** open this directory as the marketplace root (it contains `.claude-plugin/marketplace.json`), then in Claude Code run `/plugin marketplace add .` and `/plugin install xvary-stock-research@xvary-research`. Validate with `claude plugin validate .` before you tag a release.
+
+**Public GitHub checkout:** `/plugin marketplace add xvary-research/claude-code-stock-analysis-skill` then `/plugin install xvary-stock-research`.
 
 ### Commands
 
@@ -128,7 +130,7 @@ Financial snapshot (public, 10-K 2026-01-25):
 | `.claude-plugin/marketplace.json` | Marketplace catalog **`xvary-research`** — users run `/plugin marketplace add` from this directory |
 | `plugins/xvary-stock-research/` | Plugin wrapper; `skills/xvary-stock-research/` symlinks to root `SKILL.md`, `references/`, `tools/`, `examples/` so there is a single source tree |
 
-**Monorepo checkout:** open a terminal in **`9. Marketing/xvary skill/`** (this folder), then run `/plugin marketplace add .` in Claude Code — same as a standalone `stock-research` clone where this folder is the repo root.
+**Monorepo checkout:** open a terminal in **`9. Marketing/xvary skill/`** (this folder), then run `/plugin marketplace add .` in Claude Code — same as a standalone `claude-code-stock-analysis-skill` clone where this folder is the repo root.
 
 ```mermaid
 flowchart LR
