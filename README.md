@@ -9,6 +9,8 @@ Type `/analyze NVDA` in Claude Code and get a thesis-driven equity report with c
 
 This is the open skill layer of [XVARY Research](https://xvary.com). We run a 21-stage pipeline to produce institutional-depth stock analysis. This repo gives you the methodology framework, the data tools, and the scoring models. The full 22-section deep dives live at [xvary.com](https://xvary.com).
 
+*We recognize Linux Do community*
+
 ## From the live site (NVDA deep dive)
 
 Captured from **[xvary.com/stock/nvda/deep-dive/](https://xvary.com/stock/nvda/deep-dive/)** — same product surface the skill is designed to complement.
@@ -42,6 +44,8 @@ cd stock-research
 python3 tools/edgar.py AAPL    # pulls SEC XBRL data
 python3 tools/market.py AAPL   # pulls price + ratios
 ```
+
+**XVARY monorepo:** if you already have the full workspace, this skill lives at `9. Marketing/xvary skill/`.
 
 ### Install as a Claude Code skill
 
