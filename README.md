@@ -9,6 +9,22 @@ Type `/analyze NVDA` in Claude Code and get a thesis-driven equity report with c
 
 This is the open skill layer of [XVARY Research](https://xvary.com). We run a 21-stage pipeline to produce institutional-depth stock analysis. This repo gives you the methodology framework, the data tools, and the scoring models. The full 22-section deep dives live at [xvary.com](https://xvary.com).
 
+## From the live site (NVDA deep dive)
+
+Captured from **[xvary.com/stock/nvda/deep-dive/](https://xvary.com/stock/nvda/deep-dive/)** — same product surface the skill is designed to complement.
+
+<p align="center">
+  <a href="https://xvary.com/stock/nvda/deep-dive/" title="Open NVDA deep dive"><img src="assets/nvda-deep-dive-hero.png" alt="XVARY NVDA deep dive — report shell, section map, and subscribe gate" width="720"></a>
+</p>
+<p align="center">
+  <a href="https://xvary.com/stock/nvda/deep-dive/" title="Open NVDA deep dive"><img src="assets/nvda-deep-dive-thesis.png" alt="XVARY NVDA deep dive — thesis pillars and variant view" width="720"></a>
+</p>
+<p align="center">
+  <a href="https://xvary.com/stock/nvda/deep-dive/" title="Open NVDA deep dive"><img src="assets/nvda-deep-dive-scenarios.png" alt="XVARY NVDA deep dive — bear, base, and bull scenario framing" width="720"></a>
+</p>
+
+*Regenerate these assets:* `npm install && npm run screenshots:nvda` (see `scripts/screenshot_xvary_nvda.mjs`).
+
 ## What you get that raw data tools don't
 
 - **A verdict, not a spreadsheet** -- "Constructive at 74/100 conviction"
@@ -82,7 +98,7 @@ Financial snapshot (public, 10-K 2026-01-25):
 
 **This is the free layer.** The full pipeline produces 22-section reports with DCF models, competitive matrices, risk scenarios, and adversarial challenge gates.
 
-**See a complete deep dive (no signup):** [NVDA on xvary.com](https://xvary.com/stock/nvda/deep-dive/)
+**Open the live NVDA report:** [xvary.com/stock/nvda/deep-dive/](https://xvary.com/stock/nvda/deep-dive/) (free preview; full tabs with subscription)
 
 ## How this compares
 
