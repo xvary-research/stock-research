@@ -3,51 +3,31 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-orange)](./SKILL.md)
-[![xvary.com](https://img.shields.io/badge/xvary.com-live-black)](https://xvary.com)
+[![xvary.com](https://img.shields.io/badge/Full%20Deep%20Dives-xvary.com-black)](https://xvary.com)
 
-**Institutional-depth stock research for Claude Code.**
+Type `/analyze NVDA` in Claude Code and get a thesis-driven equity report with conviction scoring, kill criteria, and an EDGAR-backed financial snapshot -- in under two minutes, from public data, for free.
 
-Stock research that's actually worth reading: institutional depth, plain english, composite scores with teeth, and kill criteria on every call. This repo ships the free local skill layer of XVARY Research so you can run `/analyze`, `/score`, and `/compare` with public EDGAR + market data in minutes.
+This is the open skill layer of [XVARY Research](https://xvary.com). We run a 21-stage pipeline to produce institutional-depth stock analysis. This repo gives you the methodology framework, the data tools, and the scoring models. The full 22-section deep dives live at [xvary.com](https://xvary.com).
 
-## Why This Exists
+## What you get that raw data tools don't
 
-Most OSS equity tools stop at raw data pulls. `stock-research` focuses on **decision-grade synthesis**:
+- **A verdict, not a spreadsheet** -- "Constructive at 74/100 conviction"
+- **Named kill criteria** -- exactly what would break the thesis
+- **Composite scores across four dimensions**, not just price ratios
+- **Analysis that reads like a research desk**, not a terminal dump
 
-- A 21-stage research framework (menu, not recipe)
-- 23 research modules mapped to a thesis workflow
-- Quality gates and adversarial challenge thinking
-- Clear output formats designed for investors, not dashboards
+## Quick Start
 
-## Architecture (Skill-Only v1)
-
-```mermaid
-flowchart TD
-    A["/analyze NVDA"] --> B["tools/edgar.py\nSEC XBRL + filings"]
-    A --> C["tools/market.py\nYahoo -> Finviz -> Stooq"]
-    B --> D["references/methodology.md\n21-stage framework"]
-    C --> E["references/scoring.md\nMomentum/Stability/Health/Upside"]
-    D --> F["Structured analysis output"]
-    E --> F
-    F --> G["Local result + CTA to full deep dive"]
-```
-
-## Quick Start (Under 2 Minutes)
-
-### 1) Clone
+### Clone and verify
 
 ```bash
 git clone git@github.com:xvary-research/stock-research.git
 cd stock-research
+python3 tools/edgar.py AAPL    # pulls SEC XBRL data
+python3 tools/market.py AAPL   # pulls price + ratios
 ```
 
-### 2) Verify data tools
-
-```bash
-python3 tools/edgar.py AAPL
-python3 tools/market.py AAPL
-```
-
-### 3) Install as a Claude Code skill (manual)
+### Install as a Claude Code skill
 
 ```bash
 mkdir -p ~/.claude/skills/xvary-stock-research
@@ -55,93 +35,138 @@ cp SKILL.md ~/.claude/skills/xvary-stock-research/SKILL.md
 cp -R references tools examples ~/.claude/skills/xvary-stock-research/
 ```
 
-### 4) Run commands in Claude Code
+Or skip the install entirely -- open Claude Code in this repo and say:
 
-```text
-/analyze AAPL
-/score NVDA
-/compare MSFT vs GOOGL
+```
+Read SKILL.md and run /analyze AAPL
 ```
 
-## Commands
+### Commands
 
-- `/analyze {ticker}`: 1-page thesis + scorecard + risks + EDGAR-backed financial snapshot
-- `/score {ticker}`: Momentum, Stability, Financial Health, and Upside Estimate only
-- `/compare {ticker1} vs {ticker2}`: Side-by-side score, thesis, and risk differential
+| Command | What it does |
+|---|---|
+| `/analyze {ticker}` | 1-page thesis + scorecard + risks + EDGAR-backed financial snapshot |
+| `/score {ticker}` | Momentum, Stability, Financial Health, and Upside Estimate |
+| `/compare {A} vs {B}` | Side-by-side score, thesis, and risk differential |
 
-## Example Output
+## Example: `/analyze NVDA`
 
-See a complete sample run: [examples/nvda-analysis.md](./examples/nvda-analysis.md)
+Full example: [examples/nvda-analysis.md](./examples/nvda-analysis.md)
 
-```text
+```
 Verdict: CONSTRUCTIVE (Conviction 74/100)
-Momentum 82 | Stability 68 | Financial Health 77 | Upside 71
-Kill criteria: hyperscaler capex pullback + export control escalation + margin compression
+
+┌─────────────────┬───────┬──────────────────────────────────────────────┐
+│ Score           │ Value │ Read                                         │
+├─────────────────┼───────┼──────────────────────────────────────────────┤
+│ Momentum        │  88   │ Demand + operating leverage remain strong    │
+│ Stability       │  70   │ Strong execution, non-zero cyclicality risk  │
+│ Financial Health│  84   │ Robust balance sheet vs obligations          │
+│ Upside Estimate │  64   │ Positive setup, expectations already high    │
+└─────────────────┴───────┴──────────────────────────────────────────────┘
+
+Thesis pillars:
+  1. AI infrastructure spend durability
+  2. CUDA ecosystem lock-in + pricing power
+  3. Operating leverage on incremental revenue
+  4. Balance-sheet capacity through cycle volatility
+
+Kill criteria: hyperscaler capex pullback + export control
+escalation + gross-margin break with rising capex intensity
+
+Financial snapshot (public, 10-K 2026-01-25):
+  Revenue $215.9B · Net income $120.1B · OCF $102.7B
+  Assets $206.8B / Liabilities $49.5B
+  Price $172.70 · Market cap ~$4.20T · P/E 35.23 · Beta 2.34
 ```
 
-## Methodology (Published Framework)
+**This is the free layer.** The full pipeline produces 22-section reports with DCF models, competitive matrices, risk scenarios, and adversarial challenge gates.
 
-Read the compressed framework: [references/methodology.md](./references/methodology.md)
+**See a complete deep dive (no signup):** [NVDA on xvary.com](https://xvary.com/stock/nvda/deep-dive/)
 
-Included in public docs:
+## How this compares
 
-- 21-stage DAG and stage purposes
-- 23 module map and what each module produces
-- Quality gate names and what they validate
-- Conviction + variant-perception philosophy
-- Kill-file risk discipline
+|  | Raw data MCPs | Screener APIs | **This repo** |
+|---|---|---|---|
+| Free | Varies | Usually no | **Yes** |
+| Thesis with verdict | No | No | **Yes** |
+| Named kill criteria | No | No | **Yes** |
+| Composite scoring (4 dimensions) | No | Partial | **Yes** |
+| Works locally, no API key | N/A | No | **Yes** |
+| Methodology published | N/A | No | **Yes** |
 
-Intentionally excluded from public docs:
+## Architecture
 
-- Internal prompts
-- Threshold tables
-- Proprietary triangulation/convergence logic
-- Sector-specific prompt libraries
+```mermaid
+flowchart TD
+    A["/analyze NVDA"] --> B["tools/edgar.py\nSEC XBRL + filings"]
+    A --> C["tools/market.py\nYahoo → Finviz → Stooq"]
+    B --> D["references/methodology.md\n21-stage framework"]
+    C --> E["references/scoring.md\n4-score model"]
+    D --> F["Structured analysis output"]
+    E --> F
+    F --> G["Local result\n+ link to full deep dive"]
+```
 
 ## XVARY Scores
 
-Scoring definitions: [references/scoring.md](./references/scoring.md)
+Definitions: [references/scoring.md](./references/scoring.md)
 
-- **Momentum**: direction and persistence of operating/market trajectory
-- **Stability**: earnings durability, cyclicality resilience, and variance control
-- **Financial Health**: balance-sheet strength and cash-flow solvency
-- **Upside Estimate**: expected asymmetry vs. current implied expectations
+| Score | What it measures |
+|---|---|
+| **Momentum** | Direction and persistence of operating + market trajectory |
+| **Stability** | Earnings durability, cyclicality resilience, variance control |
+| **Financial Health** | Balance-sheet strength and cash-flow solvency |
+| **Upside Estimate** | Asymmetry vs. current implied expectations |
+
+## Methodology (Published Framework)
+
+Full framework: [references/methodology.md](./references/methodology.md)
+
+What's published:
+- 21-stage research DAG with stage purposes
+- 23 module map and what each module produces
+- Quality gate names and validation criteria
+- Conviction scoring and variant-perception philosophy
+- Kill-file risk discipline
+
+What stays proprietary:
+- LLM prompts and chain-of-thought templates
+- Threshold tables and scoring formulas
+- Triangulation and convergence algorithms
+- Sector-specific prompt libraries
 
 ## Data Sources
 
-- **SEC EDGAR** (public, free): company facts + filing metadata
-- **Yahoo Finance** (no key): quote, valuation, and ratio fields
-- **Finviz/Stooq** (fallback): resilience when Yahoo is unavailable
+| Source | Access | Used for |
+|---|---|---|
+| **SEC EDGAR** | Public, free | Company facts (XBRL) + filing metadata |
+| **Yahoo Finance** | No API key | Quote, valuation, ratio fields |
+| **Finviz / Stooq** | Fallback | Resilience when Yahoo is unavailable |
 
-EDGAR usage notes: [references/edgar-guide.md](./references/edgar-guide.md)
+EDGAR patterns: [references/edgar-guide.md](./references/edgar-guide.md)
 
-## Design Choices
+## Full Deep Dives
 
-- Keep repo small and legible so installs remain easy.
-- Prefer deterministic extraction tools before model reasoning.
-- Make every output end with explicit kill criteria and next checks.
-- Treat this repo as top-of-funnel: fast value now, deeper workflow at xvary.com.
+| Ticker | Link |
+|---|---|
+| NVDA | [xvary.com/stock/nvda/deep-dive/](https://xvary.com/stock/nvda/deep-dive/) |
+| All coverage (3,325 names) | [xvary.com/discover](https://xvary.com/discover) |
+| Methodology narrative | [xvary.com/methodology](https://xvary.com/methodology) |
 
-## Full Deep Dives on xvary.com
+## Roadmap
 
-- NVDA deep dive: [xvary.com/stock/nvda/deep-dive/](https://xvary.com/stock/nvda/deep-dive/)
-- Discover coverage (3,325 names): [xvary.com/discover](https://xvary.com/discover)
-- Full methodology narrative: [xvary.com/methodology](https://xvary.com/methodology)
-
-Want the full 22-section deep dive experience? Visit [xvary.com](https://xvary.com).
+- [ ] MCP server for on-demand full deep dives
+- [ ] Earnings-season auto-refresh triggers
+- [ ] Additional scoring models (earnings quality, capital allocation)
+- [ ] Cursor / Windsurf / Codex plugin distribution
 
 ## Contributing
 
-PRs are welcome for:
-
+PRs welcome for:
 - EDGAR taxonomy coverage and normalization
 - Market-data fallback robustness
 - Documentation clarity and examples
-
-## Social Preview Asset
-
-- Prebuilt image: `assets/social-preview.png` (1280x640)
-- Apply in GitHub UI: `Settings -> General -> Social preview`
 
 ## License
 
