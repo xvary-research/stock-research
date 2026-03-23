@@ -97,16 +97,99 @@ Financial snapshot (public, 10-K 2026-01-25):
 
 ## Architecture
 
+**Skill layer (this repo):** public data in → methodology + scoring → structured output → link out to full deep dives on [xvary.com](https://xvary.com).
+
 ```mermaid
-flowchart TD
-    A["/analyze NVDA"] --> B["tools/edgar.py\nSEC XBRL + filings"]
+flowchart LR
+    A["/analyze ticker"] --> B["tools/edgar.py\nSEC XBRL + filings"]
     A --> C["tools/market.py\nYahoo → Finviz → Stooq"]
-    B --> D["references/methodology.md\n21-stage framework"]
-    C --> E["references/scoring.md\n4-score model"]
-    D --> F["Structured analysis output"]
-    E --> F
-    F --> G["Local result\n+ link to full deep dive"]
+    B --> D["Methodology spine\n+ scoring refs"]
+    C --> D
+    D --> E["Structured analysis\n+ kill criteria"]
+    E --> F["xvary.com deep dive"]
 ```
+
+### 21-stage research spine + finalize (operational DAG)
+
+Same DAG as [references/methodology.md](./references/methodology.md): **22 nodes in code** (research spine + `finalize`). Edges show real control flow—parallel paths merge at **phase_b**, **quality_gate**, and **completion_loop**.
+
+```mermaid
+flowchart TB
+  subgraph P1["① Intake & evidence integrity"]
+    s1[directive_selection] --> s2[phase_a] --> s3[data_quality_gate] --> s4[evidence_gap_analysis]
+  end
+
+  subgraph P2["② Hypothesis & quant scaffolding"]
+    s5[kvd_hypothesis]
+    s6[pane_selection] --> s7[quant_foundation] --> s8[model_quality_gate]
+  end
+
+  subgraph P3["③ Deep enrichment & triangulation"]
+    s9[phase_b] --> s10[triangulation] --> s11[pillar_discovery]
+  end
+
+  subgraph P4["④ Parallel synthesis & QA"]
+    s12[phase_c]
+    s13[why_tree]
+    s14[quality_gate]
+  end
+
+  subgraph P5["⑤ Adversarial challenge & conviction"]
+    s15[challenge] --> s16[synthesis]
+  end
+
+  subgraph P6["⑥ Audit, packaging & release control"]
+    s17[audit] --> s18[report_json]
+    s19[audience_calibration]
+    s20[compliance_audit]
+    s21[completion_loop] --> s22[finalize]
+  end
+
+  s4 --> s5
+  s4 --> s6
+  s5 --> s9
+  s6 --> s9
+  s11 --> s12
+  s11 --> s13
+  s12 --> s14
+  s13 --> s14
+  s14 --> s15
+  s16 --> s17
+  s18 --> s19
+  s18 --> s20
+  s19 --> s21
+  s20 --> s21
+```
+
+<details>
+<summary><b>Stage index (one-line intent)</b> — click to expand</summary>
+
+| # | Stage | Intent |
+|---|--------|--------|
+| 1 | `directive_selection` | Choose sector/style evidence directives |
+| 2 | `phase_a` | Baseline facts, filings, market context |
+| 3 | `data_quality_gate` | Block low-integrity factual inputs |
+| 4 | `evidence_gap_analysis` | Find gaps; open targeted searches |
+| 5 | `kvd_hypothesis` | Candidate key value drivers |
+| 6 | `pane_selection` | Choose report panes for company profile |
+| 7 | `quant_foundation` | Valuation / risk scaffolding |
+| 8 | `model_quality_gate` | Sanity-check model outputs |
+| 9 | `phase_b` | Enrichment + deeper context |
+| 10 | `triangulation` | Cross-check independent reasoning vectors |
+| 11 | `pillar_discovery` | Weighted thesis pillars |
+| 12 | `phase_c` | Module-level synthesis (parallel) |
+| 13 | `why_tree` | Causal claims + dependency chains |
+| 14 | `quality_gate` | Consistency + evidence sufficiency |
+| 15 | `challenge` | Adversarial test of pillars |
+| 16 | `synthesis` | Conviction, variant view, scenarios |
+| 17 | `audit` | Multi-role verification + follow-ups |
+| 18 | `report_json` | Structured report payload |
+| 19 | `audience_calibration` | Readability + decision speed |
+| 20 | `compliance_audit` | Methodology + policy checks |
+| 21 | `completion_loop` | Repair sparse / inconsistent sections |
+| 22 | `finalize` | Release gating + artifact finalization |
+
+</details>
 
 ## XVARY Scores
 
